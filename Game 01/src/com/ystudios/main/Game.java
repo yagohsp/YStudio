@@ -1,35 +1,53 @@
 package com.ystudios.main;
 
-
+import com.ystudios.entities.Entity;
+import com.ystudios.entities.Player;
+import com.ystudios.graphics.Spritesheet;
+import com.ystudios.world.World;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JFrame;
 
-public class Game extends Canvas implements Runnable {
+public class Game extends Canvas implements Runnable, KeyListener {
+
+    private Thread thread;
+    private boolean isRunning = true;
 
     public static JFrame frame;
     private final int WIDTH = 160;
     private final int HEIGHT = 120;
     private final int SCALE = 4;
 
-    private Thread thread;
-    private boolean isRunning = true;
-
     private BufferedImage image;
-  
+    public List<Entity> entities;
+
+    public Player player;
+    public static Spritesheet spritesheet;
+    
+    public static World world;
+
     public Game() {
-        
+        addKeyListener(this);
         setPreferredSize(new Dimension(WIDTH * SCALE, HEIGHT * SCALE));
         initFrame();
+
+        world = new World("/map.png");
         
         image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
-
+        entities = new ArrayList<Entity>();
+        
+        spritesheet = new Spritesheet("/res/player.png");
+        player = new Player(0, 0, 16, 16, spritesheet.getSprite(0, 0, 16, 16));
+        entities.add(player);
     }
 
     public void initFrame() {
@@ -58,6 +76,10 @@ public class Game extends Canvas implements Runnable {
     }
 
     public void tick() {
+        for (int i = 0; i < entities.size(); i++) {
+            Entity e = entities.get(i);
+            e.tick();
+        }
     }
 
     public void render() {
@@ -67,16 +89,16 @@ public class Game extends Canvas implements Runnable {
             return;
         }
         Graphics g = image.getGraphics();
-        
-        
-        g.setColor(Color.black);
+
+        g.setColor(Color.white);
         g.fillRect(0, 0, WIDTH, HEIGHT);
-
-
-
+        
         /*RENDERIZANDO JOGO*/
-        
-        
+        for (int i = 0; i < entities.size(); i++) {
+            Entity e = entities.get(i);
+            e.render(g);
+        }
+
         g.dispose();
         g = bs.getDrawGraphics();
         g.drawImage(image, 0, 0, WIDTH * SCALE, HEIGHT * SCALE, null);
@@ -108,5 +130,39 @@ public class Game extends Canvas implements Runnable {
             }
         }
     }
-}
 
+    @Override
+    public void keyPressed(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_W) {
+            player.up = true;
+        } else if (e.getKeyCode() == KeyEvent.VK_S) {
+            player.down = true;
+        }
+
+        if (e.getKeyCode() == KeyEvent.VK_D) {
+            player.right = true;
+        } else if (e.getKeyCode() == KeyEvent.VK_A) {
+            player.left = true;
+        }
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_W) {
+            player.up = false;
+        } else if (e.getKeyCode() == KeyEvent.VK_A) {
+            player.left = false;
+        }
+
+        if (e.getKeyCode() == KeyEvent.VK_D) {
+            player.right = false;
+        } else if (e.getKeyCode() == KeyEvent.VK_S) {
+            player.down = false;
+        }
+    }
+}
