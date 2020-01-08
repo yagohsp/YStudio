@@ -13,6 +13,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -33,9 +34,11 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
     public static JFrame frame;
     public static final int WIDTH = 240;
     public static final int HEIGHT = 160;
-    private final int SCALE = 3;
+    public static final int SCALE = 3;
 
     private BufferedImage image;
+
+    private Font font;
 
     public static List<Entity> entities;
     public static List<Enemy> enemies;
@@ -48,6 +51,11 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
 
     public static World world;
     public UI ui;
+    public Menu menu;
+
+    public static String gameState = "MENU";
+
+    private boolean enterPressed;
 
     public Game() {
         addKeyListener(this);
@@ -56,12 +64,13 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
         initFrame();
 
         //Inicializando Objetos
-        ui = new UI();
         image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
+        ui = new UI();
+        menu = new Menu();
 
-        entities = new ArrayList<Entity>();
-        enemies = new ArrayList<Enemy>();
-        bullets = new ArrayList<Bullet>();
+        entities = new ArrayList<>();
+        enemies = new ArrayList<>();
+        bullets = new ArrayList<>();
 
         spritesheet = new Spritesheet("/res/spritesheet.png");
 
@@ -97,17 +106,28 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
     }
 
     public void tick() {
-        for (int i = 0; i < entities.size(); i++) {
-            entities.get(i).tick();
+        if (gameState == "NORMAL") {
+            enterPressed = false;
+            for (int i = 0; i < entities.size(); i++) {
+                entities.get(i).tick();
+            }
+
+            for (int i = 0; i < bullets.size(); i++) {
+                bullets.get(i).tick();
+            }
+
+            for (int i = 0; i < enemies.size(); i++) {
+                enemies.get(i).tick();
+            }
+        } else if (gameState == "MENU") {
+            menu.tick();
+        } else if (gameState == "GAME_OVER") {
+            if (enterPressed == true) {
+                gameState = "NORMAL";
+                restartGame();
+            }
         }
 
-        for (int i = 0; i < bullets.size(); i++) {
-            bullets.get(i).tick();
-        }
-
-        for (int i = 0; i < enemies.size(); i++) {
-            enemies.get(i).tick();
-        }
     }
 
     public void render() {
@@ -149,14 +169,29 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
                 Font font = new Font("roboto", Font.BOLD, 60);
                 Rectangle rect = new Rectangle(WIDTH * SCALE, HEIGHT * SCALE);
                 FontMetrics metrics = g.getFontMetrics(font);
-                int x = rect.x + (rect.width - metrics.stringWidth("YOU WIN")) / 2;
-                int y = rect.y + ((rect.height - metrics.getHeight()) / 2) + metrics.getAscent();
                 g.setFont(font);
                 g.setColor(Color.white);
-                g.drawString("YOU WIN", x, y);
-            }else{
+                g.drawString("YOU WIN", UI.stringSizeWidth(g, font, "YOU WIN"), rect.y + ((rect.height - metrics.getHeight()) / 2) + metrics.getAscent());
+            } else {
                 restartGame();
             }
+        }
+
+        if (gameState == "MENU") {
+            menu.render(g);
+        } else if (gameState == "GAME_OVER") {
+            Graphics2D g2 = (Graphics2D) g;
+            g2.setColor(new Color(0, 0, 0, 100));
+            g2.fillRect(0, 0, WIDTH * SCALE, HEIGHT * SCALE);
+
+            font = new Font("roboto", Font.BOLD, 40);
+            g.setFont(font);
+            g.setColor(Color.white);
+            g.drawString("GAME OVER", UI.stringSizeWidth(g, font, "GAME OVER"), HEIGHT * SCALE / 2 - 40);
+
+            font = new Font("roboto", Font.BOLD, 25);
+            g.setFont(font);
+            g.drawString(">Pressione enter para reiniciar<", UI.stringSizeWidth(g, font, ">Pressione enter para reiniciar<"), HEIGHT * SCALE / 2 + 20);
         }
         bs.show();
     }
@@ -203,14 +238,20 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
     public void keyPressed(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_W) {
             player.up = true;
+            menu.up = true;
         } else if (e.getKeyCode() == KeyEvent.VK_S) {
             player.down = true;
+            menu.down = true;           
         }
 
         if (e.getKeyCode() == KeyEvent.VK_D) {
             player.right = true;
         } else if (e.getKeyCode() == KeyEvent.VK_A) {
             player.left = true;
+        }
+
+        if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+            enterPressed = true;
         }
     }
 
