@@ -3,6 +3,7 @@ package com.ystudios.entities;
 import com.ystudios.graphics.Spritesheet;
 import com.ystudios.main.Game;
 import static com.ystudios.main.Game.spritesheet;
+import com.ystudios.main.Sound;
 import com.ystudios.world.Camera;
 import com.ystudios.world.World;
 import java.awt.AlphaComposite;
@@ -105,7 +106,7 @@ public class Player extends Entity {
                     Game.bullets.add(bullet);
 
                 }
-
+                Sound.shot.play();
             }
         }
 

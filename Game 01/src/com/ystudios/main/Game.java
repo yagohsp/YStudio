@@ -6,6 +6,7 @@ import com.ystudios.entities.Entity;
 import com.ystudios.entities.Player;
 import com.ystudios.graphics.Spritesheet;
 import com.ystudios.graphics.UI;
+import com.ystudios.main.Menu;
 import com.ystudios.world.World;
 import java.awt.Canvas;
 import java.awt.Color;
@@ -53,11 +54,13 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
     public UI ui;
     public Menu menu;
 
-    public static String gameState = "MENU";
+    public static String gameState = "PAUSE";
 
-    private boolean enterPressed;
+    private boolean enterPressed, escPressed;
 
     public Game() {
+        Sound.musicBackground.loop();
+        
         addKeyListener(this);
         addMouseListener(this);
         setPreferredSize(new Dimension(WIDTH * SCALE, HEIGHT * SCALE));
@@ -108,18 +111,27 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
     public void tick() {
         if (gameState == "NORMAL") {
             enterPressed = false;
-            for (int i = 0; i < entities.size(); i++) {
-                entities.get(i).tick();
-            }
+            if (escPressed == true) {
+                gameState = "PAUSE";
+                escPressed = false;
+            } else {
+                enterPressed = false;
+                for (int i = 0; i < entities.size(); i++) {
+                    entities.get(i).tick();
+                }
 
-            for (int i = 0; i < bullets.size(); i++) {
-                bullets.get(i).tick();
-            }
+                for (int i = 0; i < bullets.size(); i++) {
+                    bullets.get(i).tick();
+                }
 
-            for (int i = 0; i < enemies.size(); i++) {
-                enemies.get(i).tick();
+                for (int i = 0; i < enemies.size(); i++) {
+                    enemies.get(i).tick();
+                }
             }
-        } else if (gameState == "MENU") {
+        } else if (gameState == "PAUSE" || gameState == "MENU") {
+            if (enterPressed == true) {
+                menu.enter = true;
+            }
             menu.tick();
         } else if (gameState == "GAME_OVER") {
             if (enterPressed == true) {
@@ -177,7 +189,7 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
             }
         }
 
-        if (gameState == "MENU") {
+        if (gameState == "MENU" || gameState == "PAUSE") {
             menu.render(g);
         } else if (gameState == "GAME_OVER") {
             Graphics2D g2 = (Graphics2D) g;
@@ -241,7 +253,7 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
             menu.up = true;
         } else if (e.getKeyCode() == KeyEvent.VK_S) {
             player.down = true;
-            menu.down = true;           
+            menu.down = true;
         }
 
         if (e.getKeyCode() == KeyEvent.VK_D) {
@@ -252,6 +264,9 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
 
         if (e.getKeyCode() == KeyEvent.VK_ENTER) {
             enterPressed = true;
+        }
+        if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+            escPressed = true;
         }
     }
 
