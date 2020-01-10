@@ -14,7 +14,7 @@ public class Enemy extends Entity {
 
     private int frames = 0, maxFrames = 10, index = 0, maxIndex = 3, damagedFrames = 0;
     private BufferedImage[] rightSprite, leftSprite, rightSpriteDamaged, leftSpriteDamaged;
-    private double speed = 1.3;
+    private double speed = 0.8;
 
     private int life = 5;
 
@@ -35,7 +35,7 @@ public class Enemy extends Entity {
 
     public void tick() {
         moved = false;
-        if (itsCloseToPlayer(5 * World.TILE_SIZE)) {
+        if (itsCloseToPlayer(3 * World.TILE_SIZE)) {
             if (!isColiddingWithPlayer()) {
                 if ((int) x < Game.player.getX() && World.isFree((int) (x + speed), this.getY()) && !isColidding((int) (x + speed), this.getY())) {
                     x += speed;
@@ -127,10 +127,9 @@ public class Enemy extends Entity {
     }
 
     public boolean itsCloseToPlayer(int distance) {
-        if (x - Game.player.getX() < distance
-                && x - Game.player.getX() > -distance
-                && y - Game.player.getY() < distance
-                && y - Game.player.getY() > -distance) {
+        double currentDistance = Math.sqrt((x - Game.player.getX()) * (x - Game.player.getX()) + (y - Game.player.getY()) * (y - Game.player.getY()));
+        System.out.println(currentDistance);
+        if (currentDistance < distance) {
             return true;
         }
         return false;

@@ -12,7 +12,7 @@ public class Sound {
     public static final Sound musicBackground = new Sound("/res/background.wav");
     public static final Sound shot = new Sound("/res/shot.wav");
 
-    private Sound(String name) {
+    public Sound(String name) {
         try {
             clip = Applet.newAudioClip(Sound.class.getResource(name));
         } catch (Throwable error) {

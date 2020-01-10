@@ -54,13 +54,15 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
     public UI ui;
     public Menu menu;
 
-    public static String gameState = "PAUSE";
+    public static String gameState = "MENU";
 
     private boolean enterPressed, escPressed;
 
+    public boolean saveGame = false;
+
     public Game() {
         Sound.musicBackground.loop();
-        
+
         addKeyListener(this);
         addMouseListener(this);
         setPreferredSize(new Dimension(WIDTH * SCALE, HEIGHT * SCALE));
@@ -110,6 +112,12 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
 
     public void tick() {
         if (gameState == "NORMAL") {
+            if (saveGame) {
+                saveGame = false;
+                String[] chave = {"level"};
+                int[] valor = {currentLevel};
+                Menu.saveGame(chave, valor, 10);
+            }
             enterPressed = false;
             if (escPressed == true) {
                 gameState = "PAUSE";
@@ -131,12 +139,13 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
         } else if (gameState == "PAUSE" || gameState == "MENU") {
             if (enterPressed == true) {
                 menu.enter = true;
+                enterPressed = false;
             }
             menu.tick();
         } else if (gameState == "GAME_OVER") {
             if (enterPressed == true) {
                 gameState = "NORMAL";
-                restartGame();
+                restartGame(Integer.toString(currentLevel));
             }
         }
 
@@ -185,7 +194,7 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
                 g.setColor(Color.white);
                 g.drawString("YOU WIN", UI.stringSizeWidth(g, font, "YOU WIN"), rect.y + ((rect.height - metrics.getHeight()) / 2) + metrics.getAscent());
             } else {
-                restartGame();
+                restartGame(Integer.toString(currentLevel));
             }
         }
 
@@ -235,8 +244,7 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
         }
     }
 
-    public static void restartGame() {
-        String level = new String("" + currentLevel);
+    public static void restartGame(String level) {
         entities = new ArrayList<Entity>();
         enemies = new ArrayList<Enemy>();
         spritesheet = new Spritesheet("/res/spritesheet.png");
@@ -267,6 +275,11 @@ public class Game extends Canvas implements Runnable, KeyListener, MouseListener
         }
         if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
             escPressed = true;
+        }
+        if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+            if (gameState == "NORMAL") {
+                this.saveGame = true;
+            }
         }
     }
 
