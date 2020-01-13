@@ -1,7 +1,9 @@
 package com.ystudios.entities;
 
 import com.ystudios.main.Game;
+import com.ystudios.world.AStar;
 import com.ystudios.world.Camera;
+import com.ystudios.world.Vector2i;
 import com.ystudios.world.World;
 import java.awt.Graphics;
 import java.awt.Rectangle;
@@ -14,7 +16,6 @@ public class Enemy extends Entity {
 
     private int frames = 0, maxFrames = 10, index = 0, maxIndex = 3, damagedFrames = 0;
     private BufferedImage[] rightSprite, leftSprite, rightSpriteDamaged, leftSpriteDamaged;
-    private double speed = 0.8;
 
     private int life = 5;
 
@@ -35,6 +36,15 @@ public class Enemy extends Entity {
 
     public void tick() {
         moved = false;
+        
+        if(path == null || path.size() == 0){
+            Vector2i start = new Vector2i((int)(x/16), (int)(y/16));
+            Vector2i end = new Vector2i((int)(Game.player.x/16), (int)(Game.player.y/16));
+            path = AStar.findPath(Game.world, start, end);
+        }
+        followPath(path);
+        
+        /*
         if (itsCloseToPlayer(3 * World.TILE_SIZE)) {
             if (!isColiddingWithPlayer()) {
                 if ((int) x < Game.player.getX() && World.isFree((int) (x + speed), this.getY()) && !isColidding((int) (x + speed), this.getY())) {
@@ -61,6 +71,8 @@ public class Enemy extends Entity {
                 Game.player.isDamaged = true;
             }
         }
+         */
+
         if (moved) {
             frames++;
             if (frames == maxFrames) {
@@ -110,25 +122,9 @@ public class Enemy extends Entity {
         }
     }
 
-    public boolean isColidding(int xNext, int yNext) {
-        Rectangle enemyCurrent = new Rectangle(xNext, yNext, World.TILE_SIZE, World.TILE_SIZE);
-
-        for (int i = 0; i < Game.enemies.size(); i++) {
-            Enemy e = Game.enemies.get(i);
-            if (e == this) {
-                continue;
-            }
-            Rectangle targetEnemy = new Rectangle(e.getX(), e.getY(), World.TILE_SIZE, World.TILE_SIZE);
-            if (enemyCurrent.intersects(targetEnemy)) {
-                return true;
-            }
-        }
-        return false;
-    }
 
     public boolean itsCloseToPlayer(int distance) {
         double currentDistance = Math.sqrt((x - Game.player.getX()) * (x - Game.player.getX()) + (y - Game.player.getY()) * (y - Game.player.getY()));
-        System.out.println(currentDistance);
         if (currentDistance < distance) {
             return true;
         }

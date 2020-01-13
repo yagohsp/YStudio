@@ -15,7 +15,7 @@ import javax.imageio.ImageIO;
 
 public class World {
 
-    private static Tile[] tiles;
+    public static Tile[] tiles;
     public static int WIDTH, HEIGHT;
     public static int TILE_SIZE = 16;
 
